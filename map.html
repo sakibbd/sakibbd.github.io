@@ -1,0 +1,36 @@
+<html>
+<head>
+  <title>DART RBM</title>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+  <link rel="stylesheet" href="includes/MarkerCluster.css" />
+  <link rel="stylesheet" href="includes/leaflet-search.css" />
+  <link rel="stylesheet" href="includes/styles/customStyle.css" />
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+  <script src="includes/jquery-3.0.0.min.js"></script>
+  <script src="includes/leaflet.markercluster.js"></script>
+  <script type="text/javascript" src="includes/d3/d3.min.js"> </script>
+  <script type="text/javascript" src="includes/leaflet-search.js"> </script>
+  <script type="text/javascript" src="chart.js"> </script>
+  <script type="text/javascript" src="includes/fuse.js"> </script>
+  <script type="text/javascript" src="mapJS.js"> </script>
+  
+<!--   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script> -->
+</head>
+<body>
+	<div id="map-container">
+		<div id="map"> 
+		</div>
+	</div>
+<div id="button">
+			<button onclick="toggleMap();">Toggle Map</button>
+			<button>Reset</button>
+		</div>
+	<div id="chartContainer">
+
+	</div>
+
+</body>
+	<script>
+		mapCreation();
+	</script>
+</html>

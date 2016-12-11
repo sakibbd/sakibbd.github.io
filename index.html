@@ -1,5 +1,332 @@
+
+
 <html>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<head>
+<title>D3.js Dashboard Introduction</title>
+<script src="http://d3js.org/d3.v2.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+
+function getMaxObjectValue(this_array, element) {
+	var values = [];
+	for (var i = 0; i < this_array.length; i++) {
+			values.push(Math.ceil(parseFloat(this_array[i][""+element])));
+	}
+	values.sort(function(a,b){return a-b});
+	return values[values.length-1];
+}
+
+function getMinObjectValue(this_array, element) {
+	var values = [];
+	for (var i = 0; i < this_array.length; i++) {
+			values.push(Math.floor(parseFloat(this_array[i][""+element])));
+	}
+	values.sort(function(a,b){return a-b});
+	return values[0];
+}
+
+
+	var i = 1;
+			window.setInterval(function() {
+				chartGen();
+
+				i = (i+1) % 3 ;
+			}, 2500);
+
+ function chartGen(){
+
+	var data = [];  								
+	//var data = [{1:test,2:test,3:test,4:test,5:test,6:test,7:test}];  								
+	// this is our data array
+	var startingDate = new Date(2012, 8, 18);		
+	// this is a date object. each of our data objects is attached to a date
+	for (var i = 0; i < 5; i++) {					
+	// loop 10 times to create 10 data objects
+		var tmpObj 	= {};							
+			// this is a temporary data object
+		tmpObj.date = new Date(startingDate.getFullYear(), startingDate.getMonth(), startingDate.getDate()+i);				
+			// the data for this data object. Increment it from the starting date.
+		tmpObj.DAU 	= Math.round(Math.random() * 300);  			
+			// random value. Round it to a whole number.
+		data.push(tmpObj); 							
+			// push the object into our data array
+	}
+	console.log(data);
+	var width = 500, height = 500;
+	var margin = {top: 30, right: 10, bottom: 40, left: 60}, width = width - margin.left - margin.right, height = height - margin.top - margin.bottom;
+	
+	// these are graph size settings
+
+	var minDate = (data[0].date),
+	maxDate = data[data.length-1].date;
+	minObjectValue = getMinObjectValue(data, 'DAU');
+	maxObjectValue = getMaxObjectValue(data, 'DAU');
+	console.log(minObjectValue);
+	
+	//create the graph object
+	var vis= d3.select("#metrics").append("svg")
+    	.data(data)
+		.attr("class", "metrics-container")
+   		.attr("width", width + margin.left + margin.right)
+    	.attr("height", height + margin.top + margin.bottom)
+		.append("g")
+    	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	var y = d3.scale.linear()
+		.domain([ minObjectValue - (.1 * minObjectValue) , maxObjectValue + (.1 * maxObjectValue) ])
+		.range([height, 0]);
+		
+	var x = d3.time.scale().domain([minDate, maxDate])
+		.range([0, width]);
+
+	var yAxis = d3.svg.axis()
+		.scale(y)
+		.orient("left")
+		.ticks(5);
+
+	var xAxis = d3.svg.axis()
+		.scale(x)
+		.orient("bottom")
+		.ticks(5);
+
+	vis.append("g")
+	    .attr("class", "axis")
+	    .call(yAxis);
+
+	vis.append("g")
+		.attr("class", "axis")
+	    .attr("transform", "translate(0," + height + ")")
+	    .call(xAxis);
+		
+	var labelX = "Dates";
+	var labelY = "Daily Active Users";
+
+	//add the axes labels
+	vis.append("text")
+	    .attr("class", "axis-label")
+	    .attr("text-anchor", "end")
+	    .attr("x", 20)
+	    .attr("y", height + 34)
+	    .text(labelX);
+
+	vis.append("text")
+	    .attr("class", "axis-label")
+	    .attr("text-anchor", "end")
+	    .attr("y", 6)
+	    .attr("dy", "-3.4em")
+	    .attr("transform", "rotate(-90)")
+	    .text(labelY);
+
+	var interpolateType = "cardinal";
+	var line = d3.svg.line()
+		.x(function(d) { return x(d["date"]); })
+		.y(function(d) { return y(d["DAU"]); })
+		.interpolate(interpolateType);
+		
+		//testing perous
+		var test = function(d) { return x(d["date"]); }
+		console.log(test);
+		
+	// Define the div for the tooltip
+	var div = d3.select("body").append("div")	
+		.attr("class", "tooltip")				
+		.style("opacity", 0);	
+		
+	vis.append("svg:path")
+			.attr("d", line(data))
+			.style("stroke", function() { 
+				return "#000000";
+			})
+			.style("fill", "none")
+			.style("stroke-width", "2.5");
+
+		var dataCirclesGroup = vis.append('svg:g');
+
+		var circles = dataCirclesGroup.selectAll('.data-point')
+			.data(data);
+
+		circles
+			.enter()
+			.append('svg:circle')
+			.attr('class', 'dot')
+			.attr('fill', function() { return "red"; })
+			.attr('cx', function(d) { return x(d["date"]); })
+			.attr('cy', function(d) { return y(d["DAU"]); })
+			.attr('r', function() { return 10; })
+			.on("mouseover",mouseOver)
+			.on("mouseout", mouseOut)
+			
+		//add values in the dropdown and change graph when value is changed
+		d3.select("#interpolate")
+			.on("change", change)
+			.selectAll("option")
+			.data([
+			  "linear",
+			  "step-before",
+			  "step-after",
+			  "basis",
+			  "basis-open",
+			  "basis-closed",
+			  "cardinal",
+			  "cardinal-open",
+			  "cardinal-closed",
+			  "monotone"
+			])
+			.enter().append("option")
+			.attr("value", function(d) { return d; })
+			.text(function(d) { return d; });
+		  
+		
+		
+		function mouseOver(d){	
+				div.transition()
+				   .duration(200)
+				   .style("opacity", .9);	   
+				div.html((d["date"]) + "<br/>"  + d["DAU"])	
+				   .style("left", (d3.event.pageX) + "px")		
+				   .style("top", (d3.event.pageY - 28) + "px")
+				   .style("shadow","box");	
+				d3.select(this)
+				.attr("r", 5)
+				.attr("class", "dot")
+				   
+				   console.log(d);
+			
+		}
+		
+		function change() {
+		interpolateType = this.value;
+		line.interpolate(this.value);
+		redraw();
+		}
+
+function redraw() {
+  vis.select("path").attr("d", line);
+
+  var circle = vis.selectAll("circle")
+      .data(data, function(d) { return d; });
+
+  circle.enter().append("circle")
+      .attr("r", 1e-6)
+      //.on("mousedown", function(d) { selected = dragged = d; redraw(); })
+    .transition()
+      .duration(750)
+      .ease("elastic")
+      .attr("r", 6.5);
+
+  circle
+      //.classed("selected", function(d) { return d === selected; })
+      .attr("cx", function(d) { return d[0]; })
+      .attr("cy", function(d) { return d[1]; });
+
+  circle.exit().remove();
+
+  if (d3.event) {
+    d3.event.preventDefault();
+    d3.event.stopPropagation();
+  }
+}
+
+		function mouseOut(){
+			d3.select(this)
+				.attr("r", 10)
+				.attr("class", "dot")
+
+			div.transition()
+			   .duration(1000)
+			   .style("opacity", 0);
+		}
+
+}
+
+</script>
+
+<style>
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+
+}
+.dot {
+
+  stroke-width: 1.5px;
+}
+
+.dot-selected {
+  fill: #B0C4DE;
+  stroke: #B0C4DE;
+  stroke-width: 1.5px;
+}
+circle,
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+<!-- .metrics-container {
+	width: auto;
+	height: auto;
+	padding: 10px 10px 10px 10px;
+	border-style: solid;
+	border-width: 1px;
+	float: left;
+	margin-left: 20px;
+	margin-top: 20px;
+} -->
+
+div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 100px;					
+    height: 100px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+}
+</style>
+
+</head>
+
 <body>
-Hello world!
+
+	<h1>Line Chart</h1>
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-8">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<div id="metrics">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-4">
+			<div class="panel panel-default">
+					<div class="panel-body">
+						<select id="interpolate" 
+							
+						</select>
+					</div>
+					
+		
+		</div>
+	</div>
+
 </body>
+
 </html>

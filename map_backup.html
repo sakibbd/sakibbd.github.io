@@ -1,0 +1,262 @@
+
+<html>
+<head>
+  <title>A Leaflet map!</title>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+   <link rel="stylesheet" href="includes/MarkerCluster.css" />
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+  <script src="includes/jquery-3.0.0.min.js"></script>
+  <script src="includes/leaflet.markercluster.js"></script>
+  <script  type="text/javascript" src="includes/d3/d3.min.js"> </script>
+  <script  type="text/javascript" src="chart.js"> </script>
+<!--   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script> -->
+ 
+
+ <style>
+html, body, #map {
+   width: 100%;
+   height: 100%;
+}
+#map{	
+    width: 50%; 
+    height: 100%; 
+    position: fixed; 
+    left: 50%;
+	rigth: 10%;	
+    top: 2%;   
+}
+
+#button{
+    position: fixed; 
+    left: 30%;
+	rigth: 10%;	
+    top: 2%;   
+}
+
+#chartContainer{
+    width: 50%; 
+    height: 90%;  
+    left: 10%;
+	rigth: 50%;	
+    top: 2%;   
+}
+  </style>
+</head>
+<body>
+
+	<div id="map-container">
+		<div id="map">
+		  
+		</div>
+	</div>
+<div id="button">
+			<button onclick="toggleMap();">Toggle Map</button>
+		</div>
+	<div id="chartContainer">
+
+	</div>
+  <script>
+function toggleMap(){
+	 //document.getElementById("map").style.display= "inline" ;
+	 var test = document.getElementById('map').style.display.value;
+	 console.log(test);
+	 if(document.getElementById('map').style.display == 'none'){
+		document.getElementById('map').style.display= 'inline' ;
+	 }else
+	 document.getElementById('map').style.display= 'none' ;
+}
+ // initialize the map
+  var map = L.map('map').setView([23.6850, 90.3563], 1);
+
+  // load a tile layer
+  L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+      attribution: 'Tiles by <a href="http://mapc.org">MAPC</a>, Data by <a href="http://mass.gov/mgis">MassGIS</a>',
+      maxZoom: 17,
+      minZoom: 0
+    }).addTo(map);
+	
+		//window.map = map;
+
+/**$(document).ready(function(){
+    $(window).scroll(function(){
+        window.map.invalidateSize(false);
+    })
+})
+**/
+	
+	//Add another layer of the number of rats from other sources
+	$.getJSON("neighborhoods.geojson",function(hoodData){
+		L.geoJson( hoodData, {
+			style: function(feature){
+			  var fillColor,
+				  density = feature.properties.density;
+			  if ( density > 80 ) fillColor = "#006837";
+			  else if ( density > 40 ) fillColor = "#FF0000";
+			  else if ( density > 20 ) fillColor = "#78c679";
+			  else if ( density > 10 ) fillColor = "#c2e699";
+			  else if ( density > 0 ) fillColor = "#ffffcc";
+			  else fillColor = "#f7f7f7";  // no data
+			  return { color: "#999", weight: 1, fillColor: fillColor, fillOpacity: .6 };
+			},
+			onEachFeature: function( feature, layer ){
+			  layer.bindPopup( "<strong>" + feature.properties.Name + "</strong><br/>" + feature.properties.density + " rats per square mile" )
+			}
+		  }).addTo(map);
+		}); 
+		
+// load GeoJSON from an external file
+  $.getJSON("rodents.geo.json",function(data){
+
+  //create custom icon
+	var ratIcon = L.icon({
+		iconUrl: 'images/icon.png',
+		iconSize: [60,50]
+	});
+ var rodents = L.geoJson(data,{
+      pointToLayer: function(feature,latlng){
+	    //var marker =  L.marker(latlng,{icon: ratIcon, draggable: true}); // This is customized icon
+	    var marker =  L.marker(latlng,{ draggable: true});
+		marker.bindPopup(feature.properties.Location + '<br/>' + feature.properties.OPEN_DT);
+		//marker.bindPopup(console.log(feature.properties.Location));
+		marker.on('click', function(a){
+			callD3(marker);
+		});
+		
+		return marker;
+      }
+    });
+    var clusters = L.markerClusterGroup({
+		//animateAddingMarkers: true,
+		//disableClusteringAtZoom: true,
+	});
+		clusters.addLayer(rodents);
+		map.addLayer(clusters);
+		
+	clusters.on('clusterclick',function(a){
+		//console.log(clusters);
+	});
+   }); 
+   
+   function callD3(marker){
+    console.log(marker._leaflet_id);
+			var dataset = [ 5, 10, 13, 19, 21, 25, 22, 18, 15, 13,
+                11, 12, 15, 20, 18, 17, 16, 18, 23, 25 ];
+			
+			
+						
+			var dataset = [
+			   { "cx": 100, "cy": 20, "radius": 10, "color" : "green" },
+			   { "cx": 97, "cy": 10, "radius": 20, "color" : "black" },
+			   { "cx": 50, "cy": 20, "radius": 10, "color" : "black" },
+			   { "cx": 40, "cy": 35, "radius": 33, "color" : "black" },
+			   { "cx": 30, "cy": 40, "radius": 45, "color" : "black" },
+			   { "cx": 63, "cy": 45, "radius": 20, "color" : "black" },
+			   { "cx": 70, "cy": 49, "radius": 87, "color" : "black" },
+			   { "cx": 88, "cy": 55, "radius": 67, "color" : "black" },
+			   { "cx": 80, "cy": 60, "radius": 15, "color" : "black" },
+			   { "cx": 90, "cy": 61, "radius": 74, "color" : "black" },
+			   { "cx": 85, "cy": 66, "radius": 25, "color" : "black" },
+			   { "cx": 70, "cy": 70, "radius": 50, "color" : "purple" }];
+   
+var dataset1 = [
+                [5, 20], [480, 90], [250, 50], [100, 33], [330, 95],
+                [410, 12], [475, 44], [25, 67], [85, 21], [220, 88]
+              ];
+
+var padding = 20;
+var xaxis = 50;
+var color = d3.scale.category10();
+
+var xScale = d3.scale.linear()
+					 .domain([0, d3.max(dataset,function(d){return marker._leaflet_id})])
+					 .range([padding, 500-padding]);
+
+var yScale = d3.scale.linear()
+					 //.domain([0, d3.max(dataset, function(d){return d.cy})])
+					 .domain([0, d3.max(dataset, function(d){return marker._leaflet_id})])
+					 .range([500-padding, 	padding]);
+					 
+var rScale = d3.scale.linear()
+					//.domain([0, d3.max(dataset, function(d){return d.radius})])
+					.domain([0, d3.max(dataset, function(d){return marker._leaflet_id})])
+					.range([0, 50]);
+
+
+				
+var svg = d3.select("#chartContainer").append("svg") //Here instead of d3.select("body") I used d3.select("#chartContainer") to append the chart in #chartContainer div
+						   .attr("width",500)
+						   .attr("height",500)
+						   .attr("class", "chartHolder")
+						   ;
+
+
+var circles = svg.selectAll("circle")
+				 .data(dataset)
+				 .enter()
+				 .append("circle");
+
+var circleAttributes = circles
+				 .attr("cx",function(d){return xScale(d.cx);})
+				 .attr("cy",function(d){return xScale(d.cy);})
+				 .attr("r",function(d){return rScale(marker._leaflet_id);})
+				 .attr("stroke", "black")
+				 .style("fill", function (d,i) { return color(i); })
+				 ;
+				 
+var text = svg.selectAll("text")
+			  .data(dataset)
+			  .enter()
+			  .append("text")
+			  ;
+/**			  
+var labelText = text
+				.attr("x", function(d){ return xScale(d.cx)})
+				.attr("y", function(d){ return yScale(d.cy)})
+				.text(function(d){ return d.cx+","+d.cy})
+				//.attr("font-family", "sans-serif")
+                .attr("font-size", "20px")
+                .attr('fill', function(d){return getColor(d)});
+				;
+				
+**/				
+				
+xAxis = d3.svg.axis() // generate an axis
+    .scale(xScale) // set the range of the axis
+    .tickSize(5) // height of the ticks
+	.orient("bottom")
+    .tickSubdivide(true), // display ticks between text labels
+	
+yAxis = d3.svg.axis() // generate an axis
+	.scale(yScale) // set the range of the axis
+	.tickSize(5) // width of the ticks
+	.orient("left") // have the text labels on the left hand side
+	.tickSubdivide(true); // display ticks between text labels
+
+svg.append("svg")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + xaxis + ")")
+      .call(xAxis);	
+	  
+	  
+ svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Frequency");
+	
+function getColor(d){
+  r = 120;
+  b = r + (d * 7) % (256-r);
+    
+  return 'rgb(' + r + ',' + r + ',' + b + ')' ;
+}
+}
+
+  </script>
+</body>
+</html>
