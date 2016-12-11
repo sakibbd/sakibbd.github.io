@@ -1,0 +1,49 @@
+html, body, #map {
+   width: 100%;
+   height: 100%;
+}
+#map{	
+    width: 50%; 
+    height: 100%; 
+    position: fixed; 
+    left: 50%;
+	rigth: 10%;	
+    top: 2%;   
+}
+
+#button{
+    position: fixed; 
+    left: 30%;
+	rigth: 10%;	
+    top: 2%; 
+	background-color: green;
+}
+
+#chartContainer{
+    width: 50%; 
+    height: 90%;  
+    left: 10%;
+	rigth: 50%;	
+    top: 2%;   
+}
+
+
+.axis path,
+  .axis line{
+    fill: none;
+    stroke: black;
+  }
+
+  .line{
+    fill: none;
+    stroke: blue;
+    stroke-width: 2px;
+  }
+
+  .tick text{
+    font-size: 12px;
+  }
+
+  .tick line{
+    opacity: 0.2;
+  }
